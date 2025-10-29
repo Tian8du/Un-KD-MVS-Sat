@@ -95,7 +95,7 @@ def generate_point_clouds(height_map_paths: List[str],
 
 
 if __name__ == "__main__":
-    base_dir = r"E:\MVS_Codes\Sat-KD-MVS\Test/JAX_004_0"
+    base_dir = r"/Temp/Test/JAX_004_0"
     views = ["013", "014", "016"]
 
     height_paths = [

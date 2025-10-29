@@ -3,7 +3,7 @@ import open3d as o3d
 import numpy as np
 
 # 读取 .las 文件
-las = laspy.read(r"E:\MVS_Codes\Sat-KD-MVS\Test\JAX_004_0\JAX_004_0_points.las")
+las = laspy.read(r"/Temp/Test/JAX_004_0/JAX_004_0_points.las")
 points = np.vstack((las.x, las.y, las.z)).transpose()
 
 # 转为 Open3D 点云对象
