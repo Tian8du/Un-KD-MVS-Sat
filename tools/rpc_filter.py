@@ -7,45 +7,48 @@ import time
 
 # project the reference point cloud into the source view, then project back
 def reproject_with_depth(depth_ref, rpc_ref, depth_src, rpc_src):
-
     rpc_model_ref = RPCModelParameter(rpc_ref)
     rpc_model_src = RPCModelParameter(rpc_src)
-    width, height = depth_ref.shape[1], depth_ref.shape[0]
-    ## step1. project reference pixels to the source view
-    # reference view x, y
-    x_ref, y_ref = np.meshgrid(np.arange(0, width), np.arange(0, height))
-    x_ref, y_ref = x_ref.reshape([-1]), y_ref.reshape([-1])
 
-    # t1 = time.time()
-    lat, lon = rpc_model_ref.RPC_PHOTO2OBJ(x_ref.astype(np.float), y_ref.astype(np.float), depth_ref.reshape([-1]))
-    # t2 = time.time()
-    # source view x, y
-    x_src, y_src = rpc_model_src.RPC_OBJ2PHOTO(lat, lon, depth_ref.reshape([-1]))
-    # t3 = time.time()
+    height, width = depth_ref.shape
+    x_ref, y_ref = np.meshgrid(np.arange(width), np.arange(height))
 
-    ## step2. reproject the source view points with source view depth estimation
-    # find the depth estimation of the source view
-    x_src = x_src.reshape([height, width])
-    y_src = y_src.reshape([height, width])
-    sampled_depth_src = cv2.remap(depth_src, x_src.astype(np.float32), y_src.astype(np.float32),
-                                  interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=-999)
+    # 🔁 前置统一转换（推荐）
+    x_ref_f = x_ref.reshape(-1).astype(np.float64)
+    y_ref_f = y_ref.reshape(-1).astype(np.float64)
+    depth_f = depth_ref.reshape(-1).astype(np.float64)
 
-    """import matplotlib.pyplot as plt
+    # First projection
+    lat, lon = rpc_model_ref.RPC_PHOTO2OBJ(x_ref_f, y_ref_f, depth_f)
+    x_src, y_src = rpc_model_src.RPC_OBJ2PHOTO(lat, lon, depth_f)
 
-    plt.imshow(sampled_depth_src)
-    plt.show()"""
+    x_src = x_src.reshape((height, width))
+    y_src = y_src.reshape((height, width))
 
-    # mask = sampled_depth_src > 0
+    sampled_depth_src = cv2.remap(
+        depth_src,
+        x_src.astype(np.float32),
+        y_src.astype(np.float32),
+        interpolation=cv2.INTER_LINEAR,
+        borderMode=cv2.BORDER_CONSTANT,
+        borderValue=-999
+    )
 
-    # source 3D space
-    # NOTE that we should use sampled source-view depth_here to project back
-    lat, lon = rpc_model_src.RPC_PHOTO2OBJ(x_src.astype(np.float).reshape(-1), y_src.astype(np.float).reshape(-1),
-                             sampled_depth_src.reshape(-1))
-    # reference 3D space
-    x_reprojected, y_reprojected = rpc_model_ref.RPC_OBJ2PHOTO(lat, lon, sampled_depth_src.reshape(-1))
-    # source view x, y, depth
+    # 🔁 再次转换
+    x_src_f = x_src.reshape(-1).astype(np.float64)
+    y_src_f = y_src.reshape(-1).astype(np.float64)
+    depth_sampled_f = sampled_depth_src.reshape(-1).astype(np.float64)
 
-    return sampled_depth_src, x_reprojected.reshape(height, width), y_reprojected.reshape(height, width), x_src, y_src
+    lat, lon = rpc_model_src.RPC_PHOTO2OBJ(x_src_f, y_src_f, depth_sampled_f)
+    x_reproj, y_reproj = rpc_model_ref.RPC_OBJ2PHOTO(lat, lon, depth_sampled_f)
+
+    return (
+        sampled_depth_src,
+        x_reproj.reshape((height, width)),
+        y_reproj.reshape((height, width)),
+        x_src,
+        y_src
+    )
 
 
 def check_geometric_consistency(depth_ref, rpc_ref, depth_src, rpc_src, p_ratio, d_ratio):
@@ -80,7 +83,7 @@ def filter_depth(depths, rpcs, p_ratio, d_ratio, geo_consist_num, prob=None, con
         ref_prob = prob
         photo_mask = ref_prob > confidence_ratio
     else:
-        photo_mask = np.ones_like(ref_depth, np.bool)
+        photo_mask = np.ones_like(ref_depth, bool)
 
     all_srcview_depth_ests = []
     all_srcview_x = []

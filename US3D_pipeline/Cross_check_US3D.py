@@ -19,7 +19,7 @@ parser.add_argument('--mode', default='train', help='train or test', choices=['t
 parser.add_argument('--model', default="casmvs", help='select model', choices=['samsat', 'red', "casmvs", "ucs", "emvs", "eucs","epnet"])
 parser.add_argument('--geo_model', default="rpc", help='select dataset', choices=["rpc", "pinhole"])
 parser.add_argument('--use_qc', default=False, help="whether to use Quaternary Cubic Form for RPC warping.")
-parser.add_argument('--dataset_root', default=r'F:\Data\WHU_TLC\WHU-TLC', help='dataset root')
+parser.add_argument('--dataset_root', default=r'H:\MVS-Dataset\US3D-MVS-Grouped-SINGLE', help='dataset root')
 
 parser.add_argument('--testpath', help='testing data dir')
 parser.add_argument('--pairpath', help='pair file path')
@@ -55,10 +55,9 @@ def compute_sigma(raw_depth_imgs, geo_mask_sums, depth_average, final_mask):
 
 def generate_height_map_masked():
     # dataset, dataloader
-    train_path = "{}/open_dataset_{}/train".format(args.dataset_root, args.geo_model)
-    test_path = "{}/open_dataset_{}/train".format(args.dataset_root, args.geo_model)
-    MVSDataset = find_dataset_def(args.geo_model, "WHU-TLC")
-    train_dataset = MVSDataset(train_path, "train", args.view_num, ref_view=args.ref_view, use_qc=args.use_qc)
+    train_path = args.dataset_root
+    MVSDataset = find_dataset_def(args.geo_model, "US3D")
+    train_dataset = MVSDataset(train_path, "train", args.view_num, 1)
     TrainImgLoader = DataLoader(train_dataset, 1, shuffle=False, num_workers=0, drop_last=False,
                                 pin_memory=False)
 
@@ -66,30 +65,30 @@ def generate_height_map_masked():
         for batch_idx, sample in enumerate(TrainImgLoader):
             outname = sample["out_name"]
             imgs = sample["imgs"]
-            depth_filename = os.path.join(test_path, "height_and_cofi", str(sample["out_view"][0]), str(outname[0])+'_depth_est.pfm')
-            confidence_filename = os.path.join(test_path, "height_and_cofi", str(sample["out_view"][0]), str(outname[0])+'_confidence.pfm')
-
+            group_folder = sample["group_folder"][0]
             # filter heights
             heights = []
             rpcs = []
             view = [i for i in range(args.view_num)]
 
             for v in view:
-                height_map_path = os.path.join(test_path, "height_and_cofi", str(v),
-                             str(outname[0]) + '_depth_est.pfm')
+                height_map_path = os.path.join(train_path, group_folder,"height_and_cofi",
+                             str(outname[0]) + '_depth_est.pfm').replace("_RGB","")
                 height_map = load_pfm(height_map_path)
                 heights.append(height_map)
 
-                rpc_path = os.path.join(test_path, "rpc", str(v),
+                rpc_path = os.path.join(train_path, group_folder,"rpc",
                              str(outname[0]) + '.rpc')
                 rpc, _, _ = load_rpc_as_array(rpc_path)
                 rpcs.append(rpc)
 
-            depth_mask_path = os.path.join(test_path, "height_mask", str(args.ref_view),
-                         str(outname[0]) + '_height_mask.pfm').replace("\\", "/")
+            depth_mask_path = os.path.join(train_path, group_folder, "height_mask",
+                         str(outname[0]) + '_height_mask.pfm').replace("\\", "/").replace("_RGB","")
+            depth_mask_dir = os.path.dirname(depth_mask_path)
+            os.makedirs(depth_mask_dir, exist_ok=True)
 
-            sigma_mask_path = os.path.join(test_path, "height_mask", str(args.ref_view),
-                         str(outname[0]) + '_height_sigma.pfm').replace("\\", "/")
+            sigma_mask_path = os.path.join(train_path, group_folder, "height_mask",
+                         str(outname[0]) + '_height_sigma.pfm').replace("\\", "/").replace("_RGB","")
 
             heights = np.stack(heights, axis=0)
             rpcs = np.stack(rpcs, axis=0)

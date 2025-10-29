@@ -1,8 +1,8 @@
 # Author: Chen Liu (Wuhan University)
 # Email: sweet8degree@gmail.com
-# Version: V1
-# Date: 2025-7-7
-# Description: The teacher MVS model using self-training method.
+# Version: V2
+# Date: 2025-7-11
+# Description: The teacher MVS model using self-training method for US3D.
 
 import argparse
 import datetime
@@ -25,10 +25,9 @@ parser = argparse.ArgumentParser(description='A PyTorch Implementation')
 parser.add_argument('--mode', default='train', help='train or test', choices=['train', 'test', 'profile'])
 parser.add_argument('--model', default="casmvs", help='select model', choices=['samsat', 'red', "casmvs", "ucs", "emvs", "eucs","epnet"])
 parser.add_argument('--geo_model', default="rpc", help='select dataset', choices=["rpc", "pinhole"])
-parser.add_argument('--use_qc', default=False, help="whether to use Quaternary Cubic Form for RPC warping.")
-parser.add_argument('--dataset_root', default=r'H:\MVS-Dataset\Test', help='dataset root')
+parser.add_argument('--dataset_root', default=r'H:\MVS-Dataset\US3D-MVS-Grouped-SINGLE', help='dataset root')
 parser.add_argument('--dataset_name', default=r'US3D', help='dataset name')
-parser.add_argument('--place', default='JAX', choices=['JAX', 'OMA', 'JAX+OMA'], help='which place? OMA or JAX?')
+parser.add_argument('--place', default='JAX+OMA', choices=['JAX', 'OMA', 'JAX+OMA'], help='which place? OMA or JAX?')
 
 # Resume and save parameters
 parser.add_argument('--loadckpt', help='load a specific checkpoint')
@@ -36,14 +35,15 @@ parser.add_argument('--logdir', default='./checkpoints_US3D', help='the director
 parser.add_argument('--resume', default=False, help='continue to train the model')
 
 # input parameters
-parser.add_argument('--view_num', type=int, default=3, help='Number of images.')
+parser.add_argument('--view_num', type=int, default=5, help='Number of images.')
+parser.add_argument('--ref_view', type=int, default=1, help='Number of images.')
+
 # the ref view is set 1. it can set 0, 1 and 2.
-parser.add_argument('--ref_view', type=int, default=0)
 parser.add_argument('--batch_size', type=int, default=1, help='train batch size')
 
 # Cascade parameters
 parser.add_argument('--ndepths', type=str, default="64,32,8", help='ndepths')
-parser.add_argument('--min_interval', type=float, default=0.5, help='min_interval in the bottom stage')
+parser.add_argument('--min_interval', type=float, default=0.3, help='min_interval in the bottom stage')
 parser.add_argument('--depth_inter_r', type=str, default="4,2,1", help='depth_intervals_ratio')
 parser.add_argument('--lamb', type=float, default=1.5, help="lamb in ucs-net")
 
@@ -51,10 +51,10 @@ parser.add_argument('--dlossw', type=str, default="0.5,1.0,2.0", help='depth los
 parser.add_argument('--cr_base_chs', type=str, default="8,8,8", help='cost regularization base channels')
 
 # training parameters
-parser.add_argument('--epochs', type=int, default=30, help='number of epochs to train')
+parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train')
 parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
 # Finally, this would not change! 6, 8, 10 and 12.
-parser.add_argument('--lrepochs', type=str, default="6,8,10,12:2",
+parser.add_argument('--lrepochs', type=str, default="6,8,10:2",
                     help='epoch ids to downscale lr and the downscale rate')
 parser.add_argument('--wd', type=float, default=1e-4, help='weight decay')
 
@@ -117,8 +117,8 @@ print_args(args)
 
 # 8. dataset, dataloader
 MVSDataset = find_dataset_def(args.geo_model, args.dataset_name)
-train_dataset = MVSDataset(trainpath, "train", args.view_num, ref_view=args.ref_view, use_qc=args.use_qc)
-test_dataset = MVSDataset(testpath, "test", args.view_num, ref_view=args.ref_view, use_qc=args.use_qc)
+train_dataset = MVSDataset(trainpath, "train", args.view_num, args.ref_view)
+test_dataset = MVSDataset(testpath, "test", args.view_num, args.ref_view)
 
 height_range = None
 if args.place == "JAX":
@@ -144,37 +144,37 @@ if args.model == "samsat":
                           ndepths=[int(nd) for nd in args.ndepths.split(",") if nd],
                           depth_interals_ratio=[float(d_i) for d_i in args.depth_inter_r.split(",") if d_i],
                           cr_base_chs=[int(ch) for ch in args.cr_base_chs.split(",") if ch],
-                          geo_model=args.geo_model, use_qc=args.use_qc)
+                          geo_model=args.geo_model, )
 elif args.model == "casmvs":
     model = CascadeMVSNet(min_interval=args.min_interval,
                           ndepths=[int(nd) for nd in args.ndepths.split(",") if nd],
                           depth_interals_ratio=[float(d_i) for d_i in args.depth_inter_r.split(",") if d_i],
                           cr_base_chs=[int(ch) for ch in args.cr_base_chs.split(",") if ch],
-                          geo_model=args.geo_model, use_qc=args.use_qc)
+                          geo_model=args.geo_model,)
     print("===============> Model: Cascade MVS Net ===========>")
 elif args.model == "ucs":
     model = UCSNet(lamb=args.lamb, stage_configs=[int(nd) for nd in args.ndepths.split(",") if nd],
                    base_chs=[int(ch) for ch in args.cr_base_chs.split(",") if ch],
-                   geo_model=args.geo_model, use_qc=args.use_qc)
+                   geo_model=args.geo_model, )
     print("===============> Model: UCS-Net ===========>")
 elif args.model == "red":
     model = CascadeREDNet(min_interval=args.min_interval,
                           ndepths=[int(nd) for nd in args.ndepths.split(",") if nd],
                           depth_interals_ratio=[float(d_i) for d_i in args.depth_inter_r.split(",") if d_i],
                           cr_base_chs=[int(ch) for ch in args.cr_base_chs.split(",") if ch],
-                          geo_model=args.geo_model, use_qc=args.use_qc)
+                          geo_model=args.geo_model, )
     print("===============> Model: Cascade RED Net ===========>")
 elif args.model == "emvs":
     model = CascadeEMVSNet(min_interval=args.min_interval,
                           ndepths=[int(nd) for nd in args.ndepths.split(",") if nd],
                           depth_interals_ratio=[float(d_i) for d_i in args.depth_inter_r.split(",") if d_i],
                           cr_base_chs=[int(ch) for ch in args.cr_base_chs.split(",") if ch],
-                          geo_model=args.geo_model, use_qc=args.use_qc)
+                          geo_model=args.geo_model, )
     print("===============> Model: Cascade EMVS Net ===========>")
 elif args.model == "eucs":
     model = eUCSNet(lamb=args.lamb, stage_configs=[int(nd) for nd in args.ndepths.split(",") if nd],
                    base_chs=[int(ch) for ch in args.cr_base_chs.split(",") if ch],
-                   geo_model=args.geo_model, use_qc=args.use_qc)
+                   geo_model=args.geo_model, )
     print("===============> Model: eUCS-Net ===========>")
 elif args.model == "epnet":
     model = EPNet(min_interval=args.min_interval,
@@ -327,7 +327,6 @@ def test():
     total_time = 0
     for batch_idx, sample in enumerate(TestImgLoader):
 
-        bview = sample['out_view'][0]
         bname = sample['out_name'][0]
 
         start_time = time.time()
@@ -337,9 +336,9 @@ def test():
         total_time += time.time() - start_time
         print("Iter {}/{}, {}, time = {:3f}, test results = {}".format(batch_idx, len(TestImgLoader),
                                                                        bname, time.time() - start_time, scalar_outputs))
-
-        depth_est = np.float32(np.squeeze(tensor2numpy(image_outputs["depth_est"])))
-        prob = np.float32(np.squeeze(tensor2numpy(image_outputs["photometric_confidence"])))
+        #
+        # depth_est = np.float32(np.squeeze(tensor2numpy(image_outputs["depth_est"])))
+        # prob = np.float32(np.squeeze(tensor2numpy(image_outputs["photometric_confidence"])))
 
         depth_gt = sample['depth']['stage3']
         mask = sample['mask']['stage3']
