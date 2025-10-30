@@ -25,12 +25,11 @@ To **train and evaluate** *Un-KD-MVS-Sat*, you will need to prepare several benc
 
 | Dataset | Description | Download |
 |----------|--------------|-----------|
-| **[WHU-TLC](https://github.com/WHU-GPCV/SatMVS/blob/main/WHU_TLC/readme.md)** | High-resolution tri-stereo imagery captured by Pleiades satellites with precise LiDAR ground truth. | Public GitHub repository |
+| **[WHU-TLC](https://github.com/WHU-GPCV/SatMVS/blob/main/WHU_TLC/readme.md)** | High-resolution tri-stereo imagery captured by ZY-3 satellites with precise LiDAR ground truth. | Public GitHub repository |
 | **[US3D-MVS (DFC2019)](https://ieee-dataport.org/open-access/data-fusion-contest-2019-dfc2019)** | Multi-view WorldView-3 imagery over Jacksonville and Omaha, provided by the IEEE GRSS Data Fusion Contest. | IEEE DataPort |
 | **[DTU (training data)](https://drive.google.com/file/d/1eDjh-_bxKKnEuz5h-HXS7EDJn59clx6V/view)** | Indoor benchmark dataset used for initial pre-training and depth regularization. | Google Drive |
 | **[DTU (Depths raw)](https://virutalbuy-public.oss-cn-hangzhou.aliyuncs.com/share/cascade-stereo/CasMVSNet/dtu_data/dtu_train_hr/Depths_raw.zip)** | Raw ground-truth depth maps of DTU for evaluation. | Public link |
 | **[DTU (testing data)](https://drive.google.com/file/d/1rX0EXlUL4prRxrRu2DgLJv2j7-tpUD4D/view?usp=sharing)** | Test set for generalization verification. | Google Drive |
-| **[Model SP-MVS](https://drive.google.com/file/d/1b8i1u69_9yMPJyqGcuTkCocyg0rVg4P3/view?usp=sharing)** | Pretrained model for student initialization. | Google Drive |
 
 Additionally, both **US3D-MVS** and **MVS3D** datasets can be automatically acquired or organized using my MVS data preparation tool:  
 👉 [**Sat-MVS-Dataset**](https://github.com/Tian8du/Sat-MVS-Dataset)
