@@ -1,10 +1,18 @@
 # 🛰️ Un-KD-MVS-Sat
 **Unsupervised Self-Training Knowledge Distillation for Satellite Multi-View Stereo**
 
-*Created: June 29, 2025*  
-*Author: Liu Chen (刘晨), Wuhan University*  
+**Official implementation of the IEEE TGRS paper**
+
+Author: **Chen Liu (刘晨)**, Wuhan University  
+Created: June 29, 2025
 
 ---
+
+## 📢 News
+- **[2026]** Our paper *“Unsupervised Knowledge Distillation for Satellite Multi-View Stereo with Uncertainty-Aware Supervision”* has been accepted by **IEEE Transactions on Geoscience and Remote Sensing (TGRS)**.
+
+📄 https://doi.org/10.1109/TGRS.2026.3671455
+___
 
 ## 🧠 Overview
 **Un-KD-MVS-Sat** is an **unsupervised knowledge distillation framework** for **satellite multi-view stereo (MVS)** reconstruction.  
@@ -23,14 +31,14 @@ The framework integrates:
 
 To **train and evaluate** *Un-KD-MVS-Sat*, you will need to prepare several benchmark datasets commonly used for satellite MVS.
 
-| Dataset | Description | Download |
-|----------|--------------|-----------|
-| **[WHU-TLC](https://github.com/WHU-GPCV/SatMVS/blob/main/WHU_TLC/readme.md)** | High-resolution tri-stereo imagery captured by Pleiades satellites with precise LiDAR ground truth. | Public GitHub repository |
+| Dataset | Description                                                                                               | Download |
+|----------|-----------------------------------------------------------------------------------------------------------|-----------|
+| **[WHU-TLC](https://github.com/WHU-GPCV/SatMVS/blob/main/WHU_TLC/readme.md)** | High-resolution tri-stereo imagery captured by the ZY-3 satellite with precise LiDAR ground truth.        | Public GitHub repository |
 | **[US3D-MVS (DFC2019)](https://ieee-dataport.org/open-access/data-fusion-contest-2019-dfc2019)** | Multi-view WorldView-3 imagery over Jacksonville and Omaha, provided by the IEEE GRSS Data Fusion Contest. | IEEE DataPort |
-| **[DTU (training data)](https://drive.google.com/file/d/1eDjh-_bxKKnEuz5h-HXS7EDJn59clx6V/view)** | Indoor benchmark dataset used for initial pre-training and depth regularization. | Google Drive |
-| **[DTU (Depths raw)](https://virutalbuy-public.oss-cn-hangzhou.aliyuncs.com/share/cascade-stereo/CasMVSNet/dtu_data/dtu_train_hr/Depths_raw.zip)** | Raw ground-truth depth maps of DTU for evaluation. | Public link |
-| **[DTU (testing data)](https://drive.google.com/file/d/1rX0EXlUL4prRxrRu2DgLJv2j7-tpUD4D/view?usp=sharing)** | Test set for generalization verification. | Google Drive |
-| **[Model SP-MVS](https://drive.google.com/file/d/1b8i1u69_9yMPJyqGcuTkCocyg0rVg4P3/view?usp=sharing)** | Pretrained model for student initialization. | Google Drive |
+| **[DTU (training data)](https://drive.google.com/file/d/1eDjh-_bxKKnEuz5h-HXS7EDJn59clx6V/view)** | Indoor benchmark dataset used for initial pre-training and depth regularization.                          | Google Drive |
+| **[DTU (Depths raw)](https://virutalbuy-public.oss-cn-hangzhou.aliyuncs.com/share/cascade-stereo/CasMVSNet/dtu_data/dtu_train_hr/Depths_raw.zip)** | Raw ground-truth depth maps of DTU for evaluation.                                                        | Public link |
+| **[DTU (testing data)](https://drive.google.com/file/d/1rX0EXlUL4prRxrRu2DgLJv2j7-tpUD4D/view?usp=sharing)** | Test set for generalization verification.                                                                 | Google Drive |
+| **[Pretrained Model (Un-KD-MVS-Sat)](https://drive.google.com/file/d/1WjN6xuxVYN0GPzKBCeHR6EnZJJIh2E-y/view?usp=sharing)** | Pretrained weights for the student network used in the TGRS paper.                                        | Google Drive |
 
 Additionally, both **US3D-MVS** and **MVS3D** datasets can be automatically acquired or organized using my MVS data preparation tool:  
 👉 [**Sat-MVS-Dataset**](https://github.com/Tian8du/Sat-MVS-Dataset)
@@ -89,12 +97,12 @@ This work builds upon prior open-source frameworks, including **Sat-MVSF**, **Ca
 ## 📄 Citation
 
 ```bibtex
-@article{liu2025unkd_mvssat,
+@article{liu2026unkd_mvssat,
   title   = {Unsupervised Knowledge Distillation for Satellite Multi-View Stereo with Uncertainty-Aware Supervision},
-  author  = {Chen Liu and Yong-Hua Jiang},
+  author  = {Liu, Chen and Jiang, Yonghua and Zhang, Guangbin and Wang, Yunming},
   journal = {IEEE Transactions on Geoscience and Remote Sensing},
-  year    = {2025},
-  note    = {Early Access}
+  year    = {2026},
+  doi     = {10.1109/TGRS.2026.3671455}
 }
 ```
 
